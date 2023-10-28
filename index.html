@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pandanet social network</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: left; /* Adjusted to align content to the left */
+            padding: 20px; /* Added padding for spacing */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pandanet social network</h1>
+        <form>
+            <label for="message">Message to post:</label>
+            <input type="text" id="message" placeholder="Enter a message to post" style="width: 100%;">
+            <button type="button" id="signButton">Sign and post</button>
+        </form>
+        <div id="signatureResult" style="display: none;">
+            <h2>Signature:</h2>
+            <pre id="signatureText"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function signWithMetaMask(message) {
+            if (typeof window.ethereum === 'undefined') {
+                alert('MetaMask is not installed.');
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const [account] = accounts;
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, account],
+                });
+
+                return {
+                    content: {
+                        content: message,
+                        timestamp: new Date().toUTCString(),
+                    },
+                    pubkey: account,
+                    sig: signature,
+                };
+            } catch (error) {
+                console.error(error);
+                alert('Error signing the message. Make sure you have MetaMask installed and unlocked.');
+                return null;
+            }
+        }
+
+        // Event listener for the sign button
+        document.getElementById('signButton').addEventListener('click', async () => {
+            const message = document.getElementById('message').value;
+            const result = await signWithMetaMask(message);
+
+            if (result) {
+                document.getElementById('signatureResult').style.display = 'block';
+                document.getElementById('signatureText').textContent = JSON.stringify(result, null, 2);
+            }
+        });
+    </script>
+</body>
+</html>
